@@ -1,0 +1,15 @@
+== Introducción ==
+
+Haskell es un lenguaje funcional (donde todo se hace con llamadas a funciones),
+estático, implícitamente tipado (los [[type]]s los revisa el compilador, pero no
+hace falta declararlos), perezoso (nada se hace hasta que es completamente
+necesario). Los lenguajes populares más parecidos son la familia ML (que no son,
+sin embargo, lenguajes perezosos).
+
+El compilador de Haskell más común es [[GHC]]. Puede descargarlo de
+http://www.haskell.org/ghc/download . Los ejecutables de GHC están disponibles
+para [[GNU/Linux]], [[BSD | FreeBSD]], [[Mac OS x|MacOS]], [[Windows]], y
+[[Solaris]].  Una vez instalado [[GHC]], se tienen dos programas que son de
+interés ahora: <tt>ghc</tt>, y <tt>[[GHC/GHCi | ghci]]</tt>.  El primero compila
+librerías y aplicaciones escritas en Haskell a código binario.  El segundo es un
+interprete que permite escribir código Haskell y obtener un resultado inmediato.
