@@ -1,0 +1,350 @@
+== Overview ==
+
+Haskell is a functional (that is, everything is done with function calls), statically, implicitly typed ([[type]]s are checked by the compiler, but you don't have to declare them), lazy (nothing is done until it needs to be) language.  Its closest popular relative is probably the ML family of languages (which are not, however, lazy languages).
+
+The most common Haskell compiler is [[GHC]].  You can download GHC from http://www.haskell.org/ghc/download .  GHC binaries are available for [[GNU/Linux]], [[BSD | FreeBSD]], [[Mac OS X |MacOS]], [[Windows]], and [[Solaris]].  Once you've installed [[GHC]], you get two programs you're interested in right now: <tt>ghc</tt>, and <tt>[[GHC/GHCi | ghci]]</tt>.  The first compiles Haskell libraries or applications to binary code.  The second is an interpreter that lets you write Haskell code and get feedback right away.
+
+== Simple expressions ==
+
+You can type most math expressions directly into <tt>ghci</tt> and get an answer.  <tt>Prelude></tt> is the default GHCi prompt.
+
+  Prelude> 3 * 5
+  15
+  Prelude> 4 ^ 2 - 1
+  15
+  Prelude> (1 - 5)^(3 * 2 - 4)
+  16
+
+Strings are in "double quotes."  You can concatenate them with <hask>++</hask>.
+
+  Prelude> "Hello"
+  "Hello"
+  Prelude> "Hello" ++ ", Haskell"
+  "Hello, Haskell"
+
+Calling [[function]]s is done by putting the arguments directly after the function.  There are no parentheses as part of the function call:
+
+  Prelude> succ 5
+  6
+  Prelude> truncate 6.59
+  6
+  Prelude> round 6.59
+  7
+  Prelude> sqrt 2
+  1.4142135623730951
+  Prelude> not (5 < 3)
+  True
+  Prelude> gcd 21 14
+  7
+
+== The console ==
+
+[[Introduction to IO |I/O actions]] can be used to read from and write to the console.  Some common ones include:
+
+  Prelude> putStrLn "Hello, Haskell"
+  Hello, Haskell
+  Prelude> putStr "No newline"
+  No newline
+  Prelude> print (5 + 4)
+  9
+  Prelude> print (1 < 2)
+  True
+
+The <hask>putStr</hask> and <hask>putStrLn</hask> functions output strings to the terminal.  The <hask>print</hask> function outputs any type of value.  (If you <hask>print</hask> a string, it will have quotes around it.)
+
+If you need multiple I/O actions in one expression, you can use a <hask>do</hask> block.  Actions are separated by semicolons.
+
+  Prelude> do { putStr "2 + 2 = " ; print (2 + 2) }
+  2 + 2 = 4
+  Prelude> do { putStrLn "ABCDE" ; putStrLn "12345" }
+  ABCDE
+  12345
+
+Reading can be done with <hask>getLine</hask> (which gives back a <hask>String</hask>) or <hask>readLn</hask> (which gives back whatever type of value you want).  The <hask> <- </hask> symbol is used to assign a name to the result of an I/O action.
+
+  Prelude> do { n <- readLn ; print (n^2) }
+  4
+  16
+
+(The 4 was input.  The 16 was a result.)
+
+There is actually another way to write <hask>do</hask> blocks.  If you leave off the braces and semicolons, then indentation becomes significant.  This doesn't work so well in <tt>ghci</tt>, but try putting the file in a source file (say, <tt>Test.hs</tt>) and build it.
+
+<haskell>
+main = do putStrLn "What is 2 + 2?"
+          x <- readLn
+          if x == 4
+              then putStrLn "You're right!"
+              else putStrLn "You're wrong!"
+</haskell>
+
+You can build with <tt>ghc --make Test.hs</tt>, and the result will be called <tt>Test</tt>.  (On [[Windows]], <tt>Test.exe</tt>)  You get an <hask>if</hask> expression as a bonus.
+
+The first non-space character after <hask>do</hask> is special.  In this case, it's the <tt>p</tt> from <hask>putStrLn</hask>.  Every line that starts in the same column as that <hask>p</hask> is another statement in the <hask>do</hask> block.  If you indent more, it's part of the previous statement.  If you indent less, it ends the <hask>do</hask> block.  This is called "layout", and Haskell uses it to avoid making you put in statement terminators and braces all the time.  (The <hask>then</hask> and <hask>else</hask> phrases have to be indented for this reason: if they started in the same column, they'd be separate statements, which is wrong.)
+
+(Note: Do '''not''' indent with tabs if you're using layout. It technically still works if your tabs are 8 spaces, but it's a bad idea.  Also, don't use proportional fonts -- which apparently some people do, even when programming!)
+
+== Simple types ==
+
+So far, not a single [[type]] declaration has been mentioned.  That's because Haskell does type inference.  You generally don't have to declare types unless you want to.  If you do want to declare types, you use <hask>::</hask> to do it.
+
+  Prelude> 5 :: Int
+  5
+  Prelude> 5 :: Double
+  5.0
+
+[[Type]]s (and type [[class]]es, discussed later) always start with upper-case letters in Haskell.  Variables always start with lower-case letters.  This is a rule of the language, not a [[Studly capitals|naming convention]].
+
+You can also ask <tt>ghci</tt> what type it has chosen for something.  This is useful because you don't generally have to declare your types.
+
+  Prelude> :t True
+  True :: Bool
+  Prelude> :t 'X'
+  'X' :: Char
+  Prelude> :t "Hello, Haskell"
+  "Hello, Haskell" :: [Char]
+
+(In case you noticed, <hask>[Char]</hask> is another way of saying <hask>String</hask>.  See the [[#Structured data|section on lists]] later.)
+
+Things get more interesting for numbers.
+
+  Prelude> :t 42
+  42 :: (Num t) => t
+  Prelude> :t 42.0
+  42.0 :: (Fractional t) => t
+  Prelude> :t gcd 15 20
+  gcd 15 20 :: (Integral t) => t
+
+These types use "type classes."  They mean:
+
+* <hask>42</hask> can be used as any numeric type.  (This is why I was able to declare <hask>5</hask> as either an <hask>Int</hask> or a <hask>Double</hask> earlier.)
+* <hask>42.0</hask> can be any fractional type, but not an integral type.
+* <hask>gcd 15 20</hask> (which is a function call, incidentally) can be any integral type, but not a fractional type.
+
+There are five numeric types in the Haskell "prelude" (the part of the library you get without having to import anything):
+
+* <hask>Int</hask> is an integer with at least 30 bits of precision.
+* <hask>Integer</hask> is an integer with unlimited precision.
+* <hask>Float</hask> is a single precision floating point number.
+* <hask>Double</hask> is a double precision floating point number.
+* <hask>Rational</hask> is a fraction type, with no rounding error.
+
+All five are '''instances''' of the <hask>Num</hask> type class.  The first two are '''instances''' of <hask>Integral</hask>, and the last three are '''instances''' of <hask>Fractional</hask>.
+
+Putting it all together,
+
+  Prelude> gcd 42 35 :: Int
+  7
+  Prelude> gcd 42 35 :: Double
+  
+  <interactive>:1:0:
+      No instance for (Integral Double)
+
+The final type worth mentioning here is <hask>()</hask>, pronounced "unit."  It only has one value, also written as <hask>()</hask> and pronounced "unit."
+
+  Prelude> ()
+  ()
+  Prelude> :t ()
+  () :: ()
+
+You can think of this as similar to the <tt>void</tt> keyword in C family languages.  You can return <hask>()</hask> from an I/O action if you don't want to return anything.
+
+== Structured data ==
+
+Basic data types can be easily combined in two ways: lists, which go in [square brackets], and tuples, which go in (parentheses).
+
+Lists are used to hold multiple values of the same type.
+
+  Prelude> [1, 2, 3]
+  [1,2,3]
+  Prelude> [1 .. 5]
+  [1,2,3,4,5]
+  Prelude> [1, 3 .. 10]
+  [1,3,5,7,9]
+  Prelude> [True, False, True]
+  [True,False,True]
+
+Strings are just lists of characters.
+
+  Prelude> ['H', 'e', 'l', 'l', 'o']
+  "Hello"
+
+The <hask>:</hask> operator appends an item to the beginning of a list.  (It is Haskell's version of the <tt>cons</tt> function in the Lisp family of languages.)
+
+  Prelude> 'C' : ['H', 'e', 'l', 'l', 'o']
+  "CHello"
+
+Tuples hold a fixed number of values, which can have different types.
+
+  Prelude> (1, True)
+  (1,True)
+  Prelude> zip [1 .. 5] ['a' .. 'e']
+  [(1,'a'),(2,'b'),(3,'c'),(4,'d'),(5,'e')]
+
+The last example used <hask>zip</hask>, a library function that turns two lists into a list of tuples.
+
+The types are probably what you'd expect.
+
+  Prelude> :t ['a' .. 'c']
+  ['a' .. 'c'] :: [Char]
+  Prelude> :t [('x', True), ('y', False)]
+  [('x', True), ('y', False)] :: [(Char, Bool)]
+
+Lists are used a lot in Haskell.  There are several functions that do nice things with them.
+
+  Prelude> [1 .. 5]
+  [1,2,3,4,5]
+  Prelude> map (+ 2) [1 .. 5]
+  [3,4,5,6,7]
+  Prelude> filter (> 2) [1 .. 5]
+  [3,4,5]
+
+There are two nice functions on ordered pairs (tuples of two elements):
+
+  Prelude> fst (1, 2)
+  1
+  Prelude> snd (1, 2)
+  2
+  Prelude> map fst [(1, 2), (3, 4), (5, 6)]
+  [1,3,5]
+
+Also see [[how to work on lists]]
+
+== [[Function]] definitions ==
+
+We wrote a definition of an [[Introduction to Haskell IO/Actions |IO action]] earlier, called <hask>main</hask>:
+
+<haskell>
+main = do putStrLn "What is 2 + 2?"
+          x <- readLn
+          if x == 4
+              then putStrLn "You're right!"
+              else putStrLn "You're wrong!"
+</haskell>
+
+Now, let's supplement it by actually writing a ''[[function]]'' definition and call it <hask>factorial</hask>.  I'm also adding a module header, which is good form.
+
+<haskell>
+module Main where
+
+factorial n = if n == 0 then 1 else n * factorial (n - 1)
+
+main = do putStrLn "What is 5! ?"
+          x <- readLn
+          if x == factorial 5
+              then putStrLn "You're right!"
+              else putStrLn "You're wrong!"
+</haskell>
+
+Build again with <tt>ghc --make Test.hs</tt>.  And,
+
+  $ ./Test
+  What is 5! ?
+  120
+  You're right!
+
+There's a function.  Just like the built-in functions, it can be called as <hask>factorial 5</hask> without needing parentheses.
+
+Now ask <tt>ghci</tt> for the [[type]].
+
+  $ ghci Test.hs
+  << GHCi banner >>
+  Ok, modules loaded: Main.
+  Prelude Main> :t factorial
+  factorial :: (Num a) => a -> a
+
+Function types are written with the argument type, then <hask> -> </hask>, then the result type.  (This also has the type class <hask>Num</hask>.)
+
+Factorial can be simplified by writing it with case analysis.
+
+<haskell>
+factorial 0 = 1
+factorial n = n * factorial (n - 1)
+</haskell>
+
+== Convenient syntax ==
+
+A couple extra pieces of [[:Category:Syntax |syntax]] are helpful.
+
+<haskell>
+secsToWeeks secs = let perMinute = 60
+                       perHour   = 60 * perMinute
+                       perDay    = 24 * perHour
+                       perWeek   =  7 * perDay
+                   in  secs / perWeek
+</haskell>
+
+The <hask>let</hask> expression defines temporary names. (This is using layout again.  You could use {braces}, and separate the names with semicolons, if you prefer.)
+
+<haskell>
+classify age = case age of 0 -> "newborn"
+                           1 -> "infant"
+                           2 -> "toddler"
+                           _ -> "senior citizen"
+</haskell>
+
+The <hask>case</hask> expression does a multi-way branch.  The special label <hask>_</hask> means "anything else".
+
+== Using libraries ==
+
+Everything used so far in this tutorial is part of the [[Prelude]], which is the set of Haskell functions that are always there in any program.
+
+The best road from here to becoming a very productive Haskell programmer (aside from practice!) is becoming familiar with other [[Applications and libraries | libraries]] that do the things you need.  Documentation on the standard libraries is at [http://haskell.org/ghc/docs/latest/html/libraries/ http://haskell.org/ghc/docs/latest/html/libraries/].  There are modules there with:
+
+* [[Applications and libraries/Data structures |Useful data structures]]
+* [[Applications and libraries/Concurrency and parallelism |Concurrent and parallel programming]]
+* [[Applications and libraries/GUI libraries | Graphics and GUI libraries]]
+* [[Applications and libraries/Network | Networking, POSIX, and other system-level stuff]]
+* Two test frameworks, QuickCheck and HUnit
+* Regular expressions and predictive parsers
+* More...
+
+<haskell>
+module Main where
+
+import qualified Data.Map as M
+
+errorsPerLine = M.fromList
+    [ ("Chris", 472), ("Don", 100), ("Simon", -5) ]
+
+main = do putStrLn "Who are you?"
+          name <- getLine
+          case M.lookup name errorsPerLine of
+              Nothing -> putStrLn "I don't know you"
+              Just n  -> do putStr "Errors per line: "
+                            print n
+</haskell>
+
+The <hask>import</hask> says to use code from <hask>Data.Map</hask> and that it will be prefixed by <hask>M</hask>.  (That's necessary because some of the functions have the same names as functions from the prelude.  Most libraries don't need the <hask>as</hask> part.)
+
+If you want something that's not in the standard library, try looking at http://hackage.haskell.org/packages/hackage.html or this wiki's [[applications and libraries]] page.  This is a collection of many different libraries written by a lot of people for Haskell.  Once you've got a library, extract it and switch into that directory and do this:
+
+  runhaskell Setup configure
+  runhaskell Setup build
+  runhaskell Setup install
+
+On a UNIX system, you may need to be root for that last part.
+
+== Topics that don't fit in 10 minute limit ==
+
+* [[:Category:Language | Advanced data types]]
+** Arithmetic lists
+** [[List comprehension]]s
+** [[Type#Type and newtype | Type synonyms]]
+** [[Type|data vs newtype]] (and [[Newtype|here]])
+** [[Class |Type classes and instances]]
+* [[:Category:Syntax |Advanced syntax]]
+** [[Operator]]s
+** [[Infix operator |(+) and `foo`]]
+** [[Fixity declaration]]s
+* Advanced functions
+** [[Currying]]
+** [[Lambda abstraction]]s
+** [[Section of an infix operator |Sections]]
+* [[:Category:Monad |Monads]]
+* [[Tutorials/Programming Haskell/String IO |File I/O]]
+** Reading files
+** Writing Files
+
+[[Category:Tutorials]]
+Languages: [[Learn Haskell in 10 minutes|en]] [[Cn/十分钟学会 Haskell|zh/cn]] [[10分で学ぶHaskell|ja]] [[Haskell em 10 minutos|pt]]
