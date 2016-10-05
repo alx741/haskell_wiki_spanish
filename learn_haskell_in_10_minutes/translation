@@ -50,3 +50,73 @@ después del nombre de la función.  No hay paréntesis en la llamada a la funci
   True
   Prelude> gcd 21 14
   7
+
+== La consola ==
+
+Las [[Introduction to IO|Acciones I/O]] se pueden usar para leer y escribir en
+la consola.  Algunas son:
+
+  Prelude> putStrLn "Hello, Haskell"
+  Hello, Haskell
+  Prelude> putStr "No newline"
+  No newline
+  Prelude> print (5 + 4)
+  9
+  Prelude> print (1 < 2)
+  True
+
+Las funciones <hask>putStr</hask> y <hask>putStrLn</hask> imprimen cadenas en la
+terminal.  La función <hask>print</hask> imprime cualquier tipo de valor.  (Si
+se hace <hask>print</hask> de una cadena, tendrá comillas).
+
+Si necesita múltiples acciones I/O en una expresión, puede usar un bloque
+<hask>do</hask>.  Las acciones se separan con punto y coma.
+
+  Prelude> do { putStr "2 + 2 = " ; print (2 + 2) }
+  2 + 2 = 4
+  Prelude> do { putStrLn "ABCDE" ; putStrLn "12345" }
+  ABCDE
+  12345
+
+La lectura se puede hacer con <haske>getLine</hask> (que retorna una cadena
+<hask>String</hask>) o <hask>readLn</hask> (que retorna un valor de cualquier
+tipo que se desee).  El símbolo <hask> <- </hask> se usa para asignar un nombre
+al resultado de la acción I/O.
+
+  Prelude> do { n <- readLn ; print (n^2) }
+  4
+  16
+
+(El 4 fue la etrada.  El 16 la salida)
+
+Existe otra forma de escribir los bloques <hask>do</hask>.  Si se suprimen las
+llaves y los punto y coma, la indentación se vuelve importante.  Esto no
+funciona muy bien en <tt>ghci</tt>, pero intente poniéndolo en un fichero (por
+ejemplo, <tt>Test.hs</tt>) y compilelo.
+
+<haskell>
+main = do putStrLn "What is 2 + 2?"
+          x <- readLn
+          if x == 4
+              then putStrLn "You're right!"
+              else putStrLn "You're wrong!"
+</haskell>
+
+Puede compilar con <tt>ghc --make Test.hs</tt>, y el resultado se llamará
+<tt>Test</tt>.  (en [[Windows]], <tt>Test.exe</tt>) Se tiene una expresión
+<hask>if</hask> como un extra.
+
+El primer carácter no blanco luego de <hask>do</hask> es especial.  En este
+caso, es la <tt>p</tt> en <hask>putStrLn</hask>.  Cada linea que empieza en la
+misma columna que la <hask>p</hask> es otra instrucción en el bloque
+<hask>do</hask>.  Si se indenta más, se vuelve parte de la instrucción anterior.
+Si se indenta menos, se termina el bloque <hask>do</hask>.  Esto se llama
+"layout", y Haskell lo usa para evitar el uso de puntos y coma y llaves todo el
+tiempo. (Las frases <hask>then</hask> y <hask>else</hask> deben estar indentadas
+por esta razón. Si empiezan en la misma columna, serán instrucciones separadas,
+lo que sería incorrecto).
+
+(Nota: '''No''' indente con tabulaciones si está usando "layout". Técnicamente
+funcionará si usa tabulaciones de 8 espacios, pero no es una buena idea.
+Tampoco use fuentes proporcionales que, aparentemente algunas personas usan,
+incluso para programar!).
