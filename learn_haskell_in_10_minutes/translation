@@ -325,3 +325,112 @@ El factorial se puede simplificar escribiendo el análisis de casos.
 factorial 0 = 1
 factorial n = n * factorial (n - 1)
 </haskell>
+
+
+== Sintaxis conveniente ==
+
+Algo más de [[:Category:Syntax|sintaxis]] es útil.
+
+<haskell>
+secsToWeeks secs = let perMinute = 60
+                       perHour   = 60 * perMinute
+                       perDay    = 24 * perHour
+                       perWeek   =  7 * perDay
+                   in  secs / perWeek
+</haskell>
+
+La expresión <hask>let</hask> define nombres temporales. (Esto es usando layout
+otra vez. Se puede usar {llaves}, y separar los nombres con punto y comas, si se
+prefiere).
+
+<haskell>
+classify age = case age of 0 -> "newborn"
+                           1 -> "infant"
+                           2 -> "toddler"
+                           _ -> "senior citizen"
+</haskell>
+
+La expresión <hask>case</hask> produce ramas de decisión.  La etiqueta especial
+<hask>_</hask> significa "cualquier otra cosa".
+
+== Usando librerías ==
+
+Todo lo que se ha usado hasta ahora es parte del [[Prelude|Preludio]], que es un
+conjunto de funciones Haskell que siempre están disponibles sin solicitarlas.
+
+La mejor forma de volverse productivo en Haskell (aparte de la práctica!) es
+familiarizarse con otras [[Applications and libraries|librerías] que hacen lo
+que necesite. La documentación sobre las librerías estándar se encuentra en
+[http://haskell.org/ghc/docs/latest/html/libraries/
+http://haskell.org/ghc/docs/latest/html/libraries/]. Hay varios módulos con:
+
+* [[Applications and libraries/Data structures |Useful data structures]]
+* [[Applications and libraries/Concurrency and parallelism |Concurrent and parallel programming]]
+* [[Applications and libraries/GUI libraries | Graphics and GUI libraries]]
+* [[Applications and libraries/Network | Networking, POSIX, and other system-level stuff]]
+* Two test frameworks, QuickCheck and HUnit
+* Regular expressions and predictive parsers
+* More...
+
+* [[Applications and libraries/Data structures |Estructuras de datos útiles]]
+* [[Applications and libraries/Concurrency and parallelism |Concurrencia y programación paralela]]
+* [[Applications and libraries/GUI libraries | Librerías de GUI y gráficos]]
+* [[Applications and libraries/Network | Redes, POSIX, y otras cosas al nivel del sistema]]
+* Dos frameworks de tests, QuickCheck y HUnit
+* Expresiones regulares y parsers
+* Más...
+
+<haskell>
+module Main where
+
+import qualified Data.Map as M
+
+errorsPerLine = M.fromList
+    [ ("Chris", 472), ("Don", 100), ("Simon", -5) ]
+
+main = do putStrLn "Who are you?"
+          name <- getLine
+          case M.lookup name errorsPerLine of
+              Nothing -> putStrLn "I don't know you"
+              Just n  -> do putStr "Errors per line: "
+                            print n
+</haskell>
+
+La palabra reservada <hask>import</hask> dice que se usará el código de
+<hask>Data.Map</hask> y que tendrá el prefijo de <hask>M</hask>. (Eso es
+necesario por que algunas funciones tienen el mismo nombre que las del preludio.
+La mayoría de librerías no necesitan la parte <hask>as</hask>).
+
+Si se quiere algo que no está en la librería estándar, intente buscar en
+http://hackage.haskell.org/packages/hackage.html o en la pagina de esta wiki
+[[applications and libraries|aplicaciones y librerías]].  Esta es una colección
+de varias librerías distintas escritas por muchas personas para Haskell.  Una
+vez que se obtienen una librería, se puede extraerla y en el directorio obtenido
+hacer:
+
+  runhaskell Setup configure
+  runhaskell Setup build
+  runhaskell Setup install
+
+En un sistema UNIX, se puede necesitar ser root para esta ultima parte.
+
+== Temas que no encajan en 10 minutos ==
+
+* [[:Category:Language | Tipos de datos avanzados]]
+** Aritmética de listas
+** [[List comprehension|Comprensión de listas]]
+** [[Type#Type and newtype | Sinónimos de tipos]]
+** [[Type|data vs newtype]] (y [[Newtype|aquí]])
+** [[Class | Clases de tipos e instancias]]
+* [[:Category:Syntax |Sintaxis avanzada]]
+** [[Operator|Operadores]]
+** [[Infix operator |(+) y `foo`]]
+** [[Fixity declaration|Declaraciones de fijación]]
+* Funciones avanzadas
+** [[Currying]]
+** [[Lambda abstraction|Abstracciones lambda]]
+** [[Section of an infix operator |Secciones]]
+* [[:Category:Monad |Monads]]
+* [[Tutorials/Programming Haskell/String IO |I/O]]
+** Leer ficheros
+** Escribir ficheros
