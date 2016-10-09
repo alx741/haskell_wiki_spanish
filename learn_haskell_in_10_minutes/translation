@@ -120,3 +120,82 @@ lo que sería incorrecto).
 funcionará si usa tabulaciones de 8 espacios, pero no es una buena idea.
 Tampoco use fuentes proporcionales que, aparentemente algunas personas usan,
 incluso para programar!).
+
+
+== Tipos Simples ==
+
+Hasta ahora no se a mencionado ni un solo [[type|tipo]].  Esto es por que
+Haskell hace inferencia de tipos.  Generalmente no es necesario declararlos a
+menos que se así se quiera.  Si desea declarar tipos, se puede usar
+<hask>::</hask> para hacerlo.
+
+  Prelude> 5 :: Int
+  5
+  Prelude> 5 :: Double
+  5.0
+
+[[type|Tipos]] (y las [[class|clases]] de tipos, de las cuales se hablará luego)
+siempre empiezan con una letra mayúscula.  Las variables siempre empiezan con
+una letra minúscula.  Esta es una regla del lenguaje, no una [[Studly capitals||convención]].
+
+Se puede preguntar a <tt>ghci</tt> que tipo se ha elegido para algo.  Esto es
+útil por que generalmente no hay necesidad de declarar los tipos.
+
+  Prelude> :t True
+  True :: Bool
+  Prelude> :t 'X'
+  'X' :: Char
+  Prelude> :t "Hello, Haskell"
+  "Hello, Haskell" :: [Char]
+
+(En caso de que lo haya notado, <hask>[Char]</hask> es otra forma de decir
+<hask>String</hask>.  Vea la [[#Structured data|sección sobre listas]] luego.)
+
+Algunas cosas se tornan más interesantes con los números.
+
+  Prelude> :t 42
+  42 :: (Num t) => t
+  Prelude> :t 42.0
+  42.0 :: (Fractional t) => t
+  Prelude> :t gcd 15 20
+  gcd 15 20 :: (Integral t) => t
+
+Estos tipos usan "Clases de tipo". Significan:
+
+* <hask>42</hask> se puede usar como cualquier tipo numérico.  (Esta es la razón por la que podemos declarar <hask>5</hask> como <hask>Int</hask> o como <hask>Double</hask>).
+* <hask>42.0</hask> puede ser cualquier tipo fraccionario, pero no un tipo integral.
+* <hask>gcd 15 20</hask> (que es una llamada de función) puede ser cualquier tipo integral, pero no un tipo fraccionario.
+
+Existen 5 tipos numéricos en el "preludio" de Haskell (la parte de la librería que se obtiene sin tener que importar nada):
+
+* <hask>Int</hask> es un entero con al menos 30 bits de precisión.
+* <hask>Integer</hask> es un entero con precisión ilimitada.
+* <hask>Float</hask> es un numero de punto flotante con precisión simple.
+* <hask>Double</hask> es un numero de punto flotante con precisión doble.
+* <hask>Rational</hask> es un tipo fraccionario, sin error de redondeo.
+
+Los cinco son '''instancias''' de la clase de tipo <hask>Num</hask>.  Los
+primeros dos son '''instancias''' de <hask>Integral</hask>, y los últimos tres
+son '''instancias''' de <hask>Fractional</hask>.
+
+Poniéndolo todo junto:
+
+  Prelude> gcd 42 35 :: Int
+  7
+  Prelude> gcd 42 35 :: Double
+
+  <interactive>:1:0:
+      No instance for (Integral Double)
+
+El tipo final es un <hask>()</hask>, que se pronuncia "unidad".  Solo tiene un
+valor, que se escribe también como <hask>()</hask> y se pronuncia "unidad" de
+igual manera.
+
+  Prelude> ()
+  ()
+  Prelude> :t ()
+  () :: ()
+
+Se puede pensar en este tipo como en <tt>void</tt> de la familia de lenguajes de
+C.  Se puede retornar <hask>()</hask> desde una acción de I/O cuando no se
+quiere retornar nada en particular.
