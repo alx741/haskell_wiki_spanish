@@ -1,0 +1,116 @@
+''(This page is intended as a quick introduction to how IO is treated in Haskell. It doesn't describe everything there is to know, but should give some idea of how things work.)''
+
+Haskell separates pure functions from computations where side effects
+must be considered by encoding those side effects as values of a
+particular type. Specifically, a value of type <code>(IO a)</code> is an action,
+which if executed would produce a value of type <code>a</code>.
+
+Some examples:
+<haskell>
+getLine :: IO String
+putStrLn :: String -> IO () -- note that the result value is an empty tuple.
+randomRIO :: (Random a) => (a,a) -> IO a
+</haskell>
+
+Ordinary Haskell evaluation doesn't cause this execution to occur. A
+value of type <code>(IO a)</code> is almost completely inert. In fact, the only IO
+action which can really be said to run in a compiled Haskell program
+is <code>main</code>.
+
+Armed with this knowledge, we can write a "hello, world" program:
+<haskell>
+main :: IO ()
+main = putStrLn "Hello, World!"
+</haskell>
+
+Now, so far, all this is great, but without a way to chain actions
+together end-to-end, we can't do a whole lot. So Haskell provides us
+with a few primitives for composing and chaining together IO actions.
+A simple one of these is:
+<haskell>
+(>>) :: IO a -> IO b -> IO b
+</haskell>
+where if <code>x</code> and <code>y</code> are IO actions, then <code>(x >> y)</code> is the action that
+performs <code>x</code>, dropping the result, then performs <code>y</code> and returns its
+result.
+Great, we can now write programs which do multiple things:
+<haskell>
+main = putStrLn "Hello" >> putStrLn "World"
+</haskell>
+will print "Hello" and "World" on separate lines.
+
+However, we don't yet have a way to chain actions in which we are
+allowed to use the result of the first in order to affect what the
+second action will do. This is accomplished by the following
+operation, called 'bind':
+<haskell>
+(>>=) :: IO a -> (a -> IO b) -> IO b
+</haskell>
+Now, <code>x >>= f</code> is the action that first performs the action <code>x</code>, and captures its result, passing it to <code>f</code>, which then computes a second action to be performed. That action is then carried out, and its result is the result of the overall computation.
+
+That's a mouthful, but once you see it in use, perhaps the idea will
+become clearer:
+<haskell>
+main = putStrLn "Hello, what is your name?"
+      >> getLine
+      >>= \name -> putStrLn ("Hello, " ++ name ++ "!")
+</haskell>
+
+This is most of what we need. In fact, this bind function is really
+successful, and we can define <code>(>>)</code> in terms of it:
+<haskell>
+x >> y = x >>= const y
+</haskell>
+
+In practice, it turns out to also be quite important to turn a value
+into an IO action which does nothing, and simply returns that value.
+This is quite handy near the end of a chain of actions, where we want
+to decide what to return ourselves, rather than leaving it up to the
+last action in the chain. So there's one more primitive,
+<haskell>
+return :: a -> IO a
+</haskell>
+which does just that.
+
+You might see do-notation all over the place in real Haskell programs. In
+do-notation, our example program might look like:
+
+<haskell>
+main = do putStrLn "Hello, what is your name?"
+          name <- getLine
+          putStrLn ("Hello, " ++ name ++ "!")
+</haskell>
+
+This is in fact entirely equivalent to the above form, and is
+translated into it by the Haskell compiler. So whenever you see a do
+block, you can just imagine a chain of applications of <code>(>>)</code> and <code>(>>=)</code>,
+and some lambdas when appropriate to capture the results of actions. An action on its own on a line in a do-block will be executed, and a line of the form <code>v <- x</code> will cause the action <code>x</code> to be run, and the result bound to the variable <code>v</code>.
+
+A common mistake is to put something other than an action in the place of <code>x</code>, usually some other value. If you want to make a variable binding inside a do-block which doesn't involve running an action, then you can use a line of the form <code>let a = b</code>, which, like an ordinary let-expression will define <code>a</code> to be the same as <code>b</code>, but the definition scopes over the remainder of the do-block.
+
+Note that there is no function:
+<haskell>
+unsafe :: IO a -> a
+</haskell>
+as this would defeat the referential transparency of Haskell --
+applying <code>unsafe</code> to the same IO action might return different things
+every time, and Haskell functions aren't allowed to behave that way.
+
+Now, I haven't really told you anything about monads in general yet.
+Most monads are actually rather unlike IO, but they do share the
+similar concepts of bind and return. For more on monads in general,
+see my [[Monads as containers]] article, or my [[Monads as computation]] article which give two different ways to look at what monads abstract.
+
+- [[User:CaleGibbard|CaleGibbard]]
+
+== Further reading ==
+
+* For a comprehensive tutorial on using IO monad, look at the [http://haskell.org/haskellwiki/IO_inside Haskell I/O inside: Down the Rabbit's Hole]
+* An explanation of the basic Monad functions, with examples, can be found in the reference guide [http://members.chello.nl/hjgtuyl/tourdemonad.html A tour of the Haskell Monad functions], by Henk-Jan van Tuyl.
+* There is also more information on [[Avoiding IO|how to avoid IO]]
+
+[[Category:Idioms]]
+[[Category:Monad]]
+
+Languages: [[IO入門編|ja]]
+
